@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Mathe Speed Challenge</title>
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.card {
+  background: rgba(0,0,0,0.7);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  width: 400px;
+}
+input, button {
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+}
+button {
+  background: #00c6ff;
+  color: white;
+  cursor: pointer;
+}
+.task {
+  font-size: 20px;
+  margin: 15px 0;
+}
+.leaderboard {
+  margin-top: 20px;
+  text-align: left;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>⚡ Mathe Speed Challenge</h1>
+
+  <div id="startScreen">
+    <input type="text" id="name" placeholder="Dein Name">
+    <br>
+    <button onclick="startGame()">Start</button>
+  </div>
+
+  <div id="gameScreen" style="display:none;">
+    <div>⏱️ Zeit: <span id="time">60</span>s</div>
+    <div>✅ Punkte: <span id="score">0</span></div>
+    <div class="task" id="task"></div>
+    <input type="number" id="answer" placeholder="Antwort">
+    <br>
+    <button onclick="checkAndNext()">Nächste Aufgabe</button>
+  </div>
+
+  <div id="endScreen" style="display:none;">
+    <h2>Fertig!</h2>
+    <p id="finalScore"></p>
+    <button onclick="location.reload()">Nochmal</button>
+  </div>
+
+  <div class="leaderboard">
+    <h3>🏆 Rangliste</h3>
+    <ul id="leaderboard"></ul>
+  </div>
+</div>
+
+<script>
+let correctAnswer;
+let score = 0;
+let time = 60;
+let timer;
+let playerName = "";
+
+function newTask() {
+  const a = Math.floor(Math.random() * 21) - 10;
+  const b = Math.floor(Math.random() * 21) - 10;
+  correctAnswer = -a + b;
+  document.getElementById("task").innerText = `Addiere ${b} zur Gegenzahl von ${a}`;
+  document.getElementById("answer").value = "";
+}
+
+function startGame() {
+  playerName = document.getElementById("name").value;
+  if (!playerName) {
+    alert("Bitte Name eingeben!");
+    return;
+  }
+
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("gameScreen").style.display = "block";
+
+  newTask();
+
+  timer = setInterval(() => {
+    time--;
+    document.getElementById("time").innerText = time;
+
+    if (time <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+function checkAndNext() {
+  const userAnswer = Number(document.getElementById("answer").value);
+
+  if (userAnswer === correctAnswer) {
+    score++;
+    document.getElementById("score").innerText = score;
+  }
+
+  newTask();
+}
+
+function endGame() {
+  clearInterval(timer);
+  document.getElementById("gameScreen").style.display = "none";
+  document.getElementById("endScreen").style.display = "block";
+
+  document.getElementById("finalScore").innerText = `${playerName}, deine Punkte: ${score}`;
+
+  saveScore(playerName, score);
+  loadLeaderboard();
+}
+
+function saveScore(name, score) {
+  let scores = JSON.parse(localStorage.getItem("scores")) || [];
+  scores.push({name, score});
+  scores.sort((a, b) => b.score - a.score);
+  scores = scores.slice(0, 5);
+  localStorage.setItem("scores", JSON.stringify(scores));
+}
+
+function loadLeaderboard() {
+  let scores = JSON.parse(localStorage.getItem("scores")) || [];
+  const list = document.getElementById("leaderboard");
+  list.innerHTML = "";
+
+  scores.forEach(s => {
+    const li = document.createElement("li");
+    li.innerText = `${s.name}: ${s.score}`;
+    list.appendChild(li);
+  });
+}
+
+loadLeaderboard();
+</script>
+
+</body>
+</html>
